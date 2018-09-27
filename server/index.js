@@ -6,31 +6,6 @@ require("console-stamp")(console, "HH:MM:ss.l");
 const app = express();
 app.use(require("morgan")("short"));
 app.use(cors());
-// *************webpack-hot-middleware set-up*******************
-// // Step 1: Create & configure a webpack compiler
-
-// const webpack = require('webpack');
-// const webpackConfig = require('../webpack.config');
-// const compiler = webpack(webpackConfig);
-
-// // Step 2: Attach the dev middleware to the compiler & the app
-// app.use(
-//   require('webpack-dev-middleware')(compiler, {
-//     logLevel: 'warn',
-//     publicPath: webpackConfig.output.publicPath
-//   })
-// );
-
-// // Step 3: Attach the hot middleware to the compiler & the app
-// app.use(
-//   require('webpack-hot-middleware')(compiler, {
-//     log: console.log,
-//     path: '/__webpack_hmr',
-//     heartbeat: 10 * 1000
-//   })
-// );
-// SOURCE: https://github.com/webpack-contrib/webpack-hot-middleware/tree/master/example
-// ************************************
 const bodyParser = require("body-parser");
 const HeaderDB = require("../database/index.js");
 app.use(bodyParser.json());
@@ -54,9 +29,64 @@ app.get("/artists/:artistID", (req, res) => {
       .send({ ERROR: "artistID parameter accepts numbers between 1 and 100" });
   }
 });
+
 app.post("/artists/:artistID", (req, res) => {
   res.status(400).send({ ERROR: "does not accept post request" });
 });
+
+app.put("/artists/:artistID", (req, res) => {
+  if (!req.body.content) {
+    return res.status(400).send({
+      message: "Note content can not be empty"
+    });
+  }
+
+  // Find note and update it with the request body
+  HeaderDB.findByIdAndUpdate(req.params.artistID, {}, { new: true })
+    .then(data => {
+      if (!data) {
+        return res.status(404).send({
+          message: "Data not found with id " + req.params.artistID
+        });
+      }
+      res.send(data);
+    })
+    .catch(err => {
+      if (err.kind === "ObjectId") {
+        return res.status(404).send({
+          message: "Note not found with id " + req.params.artistID
+        });
+      }
+      return res.status(500).send({
+        message: "Error updating note with id " + req.params.artistID
+      });
+    });
+});
+
+app.delete("/artists/:artistID", (req, res) => {
+  HeaderDB.find({ id: req.params.artistID })
+    .remove()
+    .exec()
+    .then(data => {
+      if (!data) {
+        return res.status(404).send({
+          message: "Note not found with id " + req.params.artistID
+        });
+      }
+      res.send({ message: "Note deleted successfully!" });
+    })
+    .catch(err => {
+      if (err.kind === "ObjectId" || err.name === "NotFound") {
+        return res.status(404).send({
+          message: "Note not found with id " + req.params.artistID
+        });
+      }
+      return res.status(500).send({
+        message: "Could not delete note with id " + req.params.artistID
+      });
+    });
+});
+
 app.listen(process.env.PORT || 3004, function onStart(err) {
   if (err) {
     console.log(err);

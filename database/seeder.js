@@ -1,48 +1,25 @@
 const faker = require("faker");
-let HeaderDB = require("./index.js");
+// let HeaderDB = require("./index.js");
 faker.locale = "en_US";
 
-for (let i = 1; i <= 100; i++) {
-  let newArtist = {
-    artistID: i,
-    artistName: faker.name.findName(),
-    followed: Math.round(Math.random()) ? true : false,
-    followersNumber: "PLACE_HOLDER",
-    verified: Math.round(Math.random() * 0.7 + 0.3) ? true : false,
-    artistImages: [],
-    about: {
-      Biography: faker.lorem.paragraphs(
-        faker.random.number({ min: 5, max: 10 }),
-        "\n\n"
-      ),
-      Where: {}
-    }
-  };
-  var a = faker.random.number();
-  // adding cities
-  for (let i = 0; i < faker.random.number({ min: 80, max: 200 }); i++) {
-    newArtist.about.Where[faker.address.city()] = faker.random.number({
-      min: 1000,
-      max: 100000
-    });
+var artistsData = function() {
+  var arr = [];
+  for (let i = 1; i <= 25000; i++) {
+    let newArtist = {
+      ID: i,
+      artistName: faker.name.findName(),
+      followed: Math.round(Math.random()) ? true : false,
+      followersNumber: Math.round(Math.random() * 5000000 + 5000000),
+      artistImages: `https://s3-us-west-1.amazonaws.com/artistsyon/${i}.jpg`,
+      Biography: '"' + faker.lorem.paragraphs() + '"',
+      JoinID: i + "\n"
+    };
+    var a = faker.random.number();
+    arr.push(Object.values(newArtist).join(","));
   }
+  return arr.join("");
+};
 
-  // adding urls to s3;
+// console.log(artistsData());
 
-  var obj = {};
-  for (let i = 1; i <= faker.random.number({ min: 2, max: 10 }); i++) {
-    obj[faker.random.number({ min: 1, max: 27 })] = null;
-  }
-  Object.keys(obj).forEach(num => {
-    newArtist.artistImages.push(
-      `https://s3-us-west-1.amazonaws.com/spotifycloneartists/photos/${num}.jpg`
-    );
-  });
-
-  newArtist.followersNumber = Object.values(newArtist.about.Where).reduce(
-    (accumulator, currentValue) => accumulator + currentValue
-  );
-  HeaderDB.create(newArtist, function(err, newData) {
-    err ? console.error(error) : console.log(newData);
-  });
-}
+module.exports = artistsData;

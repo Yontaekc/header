@@ -1,8 +1,8 @@
-import React, { Component } from 'react';
-import PropTypes from 'prop-types';
-import { hot } from 'react-hot-loader';
-import AboutStyle from './styles/About.css';
-import classNames from 'classnames';
+import React, { Component } from "react";
+import PropTypes from "prop-types";
+import { hot } from "react-hot-loader";
+import AboutStyle from "./styles/About.css";
+import classNames from "classnames";
 
 class LocationStat extends Component {
   constructor(props) {
@@ -15,7 +15,9 @@ class LocationStat extends Component {
     const entryToRender = (location, followerCount) => (
       <div className="locationStat-entry">
         <h5 className="locationStat-location">{location}</h5>
-        <h6 className="locationStat-followerCount">{followerCount.toLocaleString('en')} followers</h6>
+        <h6 className="locationStat-followerCount">
+          {followerCount.toLocaleString("en")} followers
+        </h6>
       </div>
     );
     return (

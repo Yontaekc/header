@@ -20,5 +20,5 @@ CREATE TABLE IF NOT EXISTS artists_cities(
   cityID INTEGER REFERENCES cities (cityID) ON UPDATE CASCADE,
   followers INTEGER NOT NULL
 );
-
+INSERT INTO artists (artistID, artistName, followed, followersNumber, biography, artistImages) VALUES (1, "yon", true, 1234, "bro", "['""https://s3-us-west-1.amazonaws.com/artistsyon/1.jpg""', '""https://s3-us-west-1.amazonaws.com/artistsyon/2.jpg""']");
 -- COPY artists FROM '/Users/yontaekchung/Desktop/SDC/header/database/artistData/artists1.csv' DELIMITER ',' CSV HEADER;

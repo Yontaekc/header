@@ -1,22 +1,15 @@
 var { Pool } = require("pg");
-var connectionString = "postgres://yontaekc:yon123@localhost:5432/spotify";
-// var client = new Client(connectionString);
 var format = require("pg-format");
 var helper = require("./modelHelper.js");
 var redis = require("redis");
 const pool = new Pool({
-  host: "localhost",
+  host: "18.223.124.200",
   database: "spotify",
   port: "5432",
-  user: "yontaekc",
-  password: "yon123"
+  user: "power_user",
+  password: "poweruserpassword"
 });
-// var rClient = require("../../server/index.js");
-// const REDIS_PORT = process.env.REDIS_PORT;
-// const rClient = redis.createClient(REDIS_PORT);
-// var queries = require("./queries.js");
 
-// client.connect();
 pool.on("error", (err, client) => {
   console.error("Unexpected error on idle client", err);
   process.exit(-1);

@@ -3,7 +3,7 @@ var format = require("pg-format");
 var helper = require("./modelHelper.js");
 var redis = require("redis");
 const pool = new Pool({
-  host: "18.223.124.200",
+  host: "18.216.76.69",
   database: "spotify",
   port: "5432",
   user: "power_user",

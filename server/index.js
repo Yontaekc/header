@@ -1,13 +1,28 @@
 require("newrelic");
 const path = require("path");
 const express = require("express");
+const redis = require("redis");
 const cors = require("cors");
 const bodyParser = require("body-parser");
 const cluster = require("cluster");
 const os = require("os");
 var model = require("../database/postgresql/model.js");
+const REDIS_PORT = process.env.REDIS_PORT;
+const rClient = redis.createClient(REDIS_PORT);
+const responseTime = require("response-time");
 
-// const app = express();
+function cache(req, res) {
+  let artist = req.params.artistID;
+  rClient.get(artist, function(err, data) {
+    if (err) throw err;
+
+    if (data != null) {
+      res.send(data);
+    } else {
+      model.get(req, res, rClient);
+    }
+  });
+}
 
 if (cluster.isMaster) {
   const cpuCount = os.cpus().length;
@@ -16,12 +31,17 @@ if (cluster.isMaster) {
   }
 } else {
   const app = express();
+  rClient.on("error", err => {
+    console.log("Error " + err);
+  });
   app.use(require("morgan")("short"));
   app.use(cors());
+  app.use(responseTime());
   app.use(bodyParser.json());
   app.use(express.static(__dirname + "/../public/dist"));
 
-  app.get("/api/v1/artists/:artistID", model.get);
+  // app.get("/api/v1/artists/:artistID", model.get);
+  app.get("/api/v1/artists/:artistID", cache);
 
   app.post("/api/v1/artists/:artistID", model.post);
 
@@ -39,19 +59,20 @@ if (cluster.isMaster) {
     );
   });
   console.log("app is running on port", 3004);
-  module.exports = app;
+  module.exports = { rClient };
 }
 
 cluster.on("exit", worker => {
   console.log("mayday! mayday! worker", worker.id, " is no more!");
   cluster.fork();
 });
+
 // Using postgresql
 
 //cassandra
 
 // const cassandra = require("cassandra-driver");
-// const client = new cassandra.Client({
+// const rClient = new cassandra.Client({
 //   contactPoints: ["127.0.0.1"],
 //   // protocolOptions: { port: 9042 },
 //   keyspace: "spotify"

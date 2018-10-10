@@ -1,19 +1,33 @@
-var { Client } = require("pg");
+var { Pool } = require("pg");
 var connectionString = "postgres://yontaekc:yon123@localhost:5432/spotify";
-var client = new Client(connectionString);
+// var client = new Client(connectionString);
 var format = require("pg-format");
 var helper = require("./modelHelper.js");
+var redis = require("redis");
+const pool = new Pool({
+  host: "localhost",
+  database: "spotify",
+  port: "5432",
+  user: "yontaekc",
+  password: "yon123"
+});
+// var rClient = require("../../server/index.js");
+// const REDIS_PORT = process.env.REDIS_PORT;
+// const rClient = redis.createClient(REDIS_PORT);
 // var queries = require("./queries.js");
 
-client.connect();
+// client.connect();
+pool.on("error", (err, client) => {
+  console.error("Unexpected error on idle client", err);
+  process.exit(-1);
+});
 
-var get = (req, res) => {
+var get = (req, res, rClient) => {
   if (!!parseInt(req.params.artistID)) {
-    console.log(req.params.artistID);
-    client
-      .query(
-        `SELECT
-          artists.artistName,
+    pool.connect().then(client => {
+      return client
+        .query(
+          `SELECT artists.artistName,
           artists.biography,
           artists.followed,
           artists.followersnumber,
@@ -27,24 +41,32 @@ var get = (req, res) => {
         AND
           cities.cityID = artists_cities.cityID
         AND artists.artistID = ${req.params.artistID}`
-      )
-      .then((response, err) => {
-        if (err) {
-          console.log(err);
-        }
-        res.send(helper.reshape(response.rows));
-        // res.send(response.rows[0]);
-      })
-      .catch(err => {
-        if (err.kind === "ObjectId") {
-          return res.status(404).send({
-            message: "Note not found with id " + req.params.artistID
+        )
+        .then((response, err) => {
+          if (err) {
+            console.log(err);
+          }
+          client.release();
+          let data = response.rows;
+          rClient.setex(
+            req.params.artistID,
+            3600,
+            JSON.stringify(helper.reshape(response.rows))
+          );
+          res.send(helper.reshape(response.rows));
+        })
+        .catch(err => {
+          client.release();
+          if (err.kind === "ObjectId") {
+            return res.status(404).send({
+              message: "Note not found with id " + req.params.artistID
+            });
+          }
+          return res.status(500).send({
+            message: "Error updating note with id " + req.params.artistID
           });
-        }
-        return res.status(500).send({
-          message: "Error updating note with id " + req.params.artistID
         });
-      });
+    });
   }
 };
 

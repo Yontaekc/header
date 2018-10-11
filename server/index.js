@@ -41,6 +41,9 @@ if (cluster.isMaster) {
   app.use(express.static(__dirname + "/../public/dist"));
 
   // app.get("/api/v1/artists/:artistID", model.get);
+  app.get("/loaderio-680f4b63cd393979eec9f47c64f27cc3", (req, res) => {
+    res.status(200).send("loaderio-680f4b63cd393979eec9f47c64f27cc3");
+  });
   app.get("/api/v1/artists/:artistID", cache);
 
   app.post("/api/v1/artists/:artistID", model.post);

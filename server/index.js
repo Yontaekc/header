@@ -8,7 +8,7 @@ const cluster = require("cluster");
 const os = require("os");
 var model = require("../database/postgresql/model.js");
 const REDIS_PORT = process.env.REDIS_PORT;
-const rClient = redis.createClient(REDIS_PORT);
+const rClient = redis.createClient(6379, "18.191.133.22");
 const responseTime = require("response-time");
 
 function cache(req, res) {
